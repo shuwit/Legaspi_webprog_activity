@@ -93,7 +93,7 @@ const AboutPage = () => {
                 <Button to="/" variant="primary" className="shadow-lg hover:-translate-y-0.5 hover:shadow-xl transition-all">
                   Download CV
                 </Button>
-                <Button to="/article" className="bg-white/50 border-white hover:bg-white hover:shadow-md transition-all">
+                <Button to="/articles" className="bg-white/50 border-white hover:bg-white hover:shadow-md transition-all">
                   Read My Articles
                 </Button>
               </div>

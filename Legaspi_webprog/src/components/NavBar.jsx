@@ -4,7 +4,7 @@ import Logo from '../assets/Logo.png'; // <-- Wires up your specific logo file
 const links = [
     { label: 'Home', to: '/' },
     { label: 'About', to: '/about' },
-    { label: 'Articles', to: '/article' },
+    { label: 'Articles', to: '/articles' },
 ];
 
 // Modern iOS-style active link states
