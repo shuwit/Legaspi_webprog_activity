@@ -1,12 +1,12 @@
-import Button from '../components/Button';
-import mee from '../assets/mee.jpg';
+import Button from '../../components/Button';
+import mee from '../../assets/mee.jpg';
 
 const skills = [
-  'ReactJS', 
-  'Mern Stack', 
-  'Flutter Dart', 
-  'UI/UX Design', 
-  'PC Building', 
+  'ReactJS',
+  'Mern Stack',
+  'Flutter Dart',
+  'UI/UX Design',
+  'PC Building',
   'PC Optimizing',
 ];
 
@@ -24,7 +24,7 @@ const socials = [
   {
     name: 'Instagram',
     handle: '@shuwitzz',
-    url: '#', 
+    url: '#',
     icon: (
       <svg className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
@@ -58,7 +58,7 @@ const socials = [
 const AboutPage = () => {
   return (
     <div className="relative flex w-full flex-col overflow-hidden bg-zinc-50 pb-20">
-      
+
       {/* Ambient Background Waves */}
       <div className="pointer-events-none absolute -left-[10%] top-[5%] h-[600px] w-[600px] rounded-full bg-blue-200/30 blur-[120px] animate-pulse" />
       <div className="pointer-events-none absolute -right-[10%] bottom-[20%] h-[500px] w-[500px] rounded-full bg-purple-200/30 blur-[100px] animate-pulse" style={{ animationDelay: '1.5s' }} />
@@ -67,7 +67,7 @@ const AboutPage = () => {
       <section className="relative z-10 mx-auto w-full max-w-7xl px-4 pt-16 sm:px-6 lg:px-8">
         <div className="rounded-[2.5rem] border border-white/60 bg-white/40 p-8 shadow-[0_8px_32px_0_rgba(31,38,135,0.05)] backdrop-blur-2xl sm:p-12">
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-            
+
             <div className="order-2 lg:order-1 relative group">
               <div className="absolute -inset-1 rounded-[2rem] bg-gradient-to-tr from-white/60 to-white/10 opacity-50 blur transition duration-500 group-hover:opacity-100"></div>
               <div className="relative overflow-hidden rounded-[2rem] border-2 border-white/80 bg-white/20 p-2 shadow-xl backdrop-blur-md">
@@ -86,8 +86,8 @@ const AboutPage = () => {
               </h1>
               <p className="mt-6 text-base leading-relaxed text-zinc-600">
                 Since I was a child, I have always been interested in technology, specially in PC building stuff and optimizing it, and as I grow older, I start to learn about programming and web development, and I find it really interesting, and I want to learn more about it, and that's why I decided to pursue a degree in IT, and here I am now, learning new things every day and trying to improve myself as a developer.
-                <br/><br/>
-                
+                <br /><br />
+
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
                 <Button to="/" variant="primary" className="shadow-lg hover:-translate-y-0.5 hover:shadow-xl transition-all">
@@ -116,14 +116,14 @@ const AboutPage = () => {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-             {skills.map((skill) => (
-                <div 
-                  key={skill} 
-                  className="group flex cursor-default items-center justify-center rounded-2xl border border-white/60 bg-white/40 p-5 text-center text-sm font-bold text-zinc-700 shadow-sm backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-white hover:bg-white/80 hover:text-zinc-900 hover:shadow-lg hover:shadow-zinc-200/50"
-                >
-                    {skill}
-                </div>
-             ))}
+            {skills.map((skill) => (
+              <div
+                key={skill}
+                className="group flex cursor-default items-center justify-center rounded-2xl border border-white/60 bg-white/40 p-5 text-center text-sm font-bold text-zinc-700 shadow-sm backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-white hover:bg-white/80 hover:text-zinc-900 hover:shadow-lg hover:shadow-zinc-200/50"
+              >
+                {skill}
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -139,15 +139,15 @@ const AboutPage = () => {
 
         <div className="grid gap-6 grid-cols-2 lg:grid-cols-4">
           {socials.map((social) => (
-            <a 
-              key={social.name} 
-              href={social.url} 
-              target="_blank" 
+            <a
+              key={social.name}
+              href={social.url}
+              target="_blank"
               rel="noopener noreferrer"
               className="group flex flex-col items-center justify-center rounded-[2rem] border border-white/60 bg-white/40 p-8 shadow-sm backdrop-blur-md transition-all duration-300 hover:-translate-y-2 hover:bg-white/80 hover:shadow-xl hover:shadow-zinc-200/50"
             >
               <div className="mb-4 flex items-center justify-center text-zinc-700 transition-transform duration-300 group-hover:scale-110 group-hover:text-zinc-900">
-                 {social.icon}
+                {social.icon}
               </div>
               <h3 className="text-lg font-bold text-zinc-900">{social.name}</h3>
               <p className="mt-1 text-xs font-semibold text-zinc-500 group-hover:text-zinc-700 transition-colors">

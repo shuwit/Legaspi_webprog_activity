@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
-import Button from '../components/Button';
-import articles from '../assets/styles/article-content.js';
+import Button from '../../components/Button.jsx';
+import articles from '../../assets/styles/article-content.js';
 
 function ArticlePage() {
     const { name } = useParams();
@@ -20,7 +20,7 @@ function ArticlePage() {
     return (
         <div className="mx-auto max-w-4xl px-4 py-12">
             <Button to="/articles" className="mb-8">← Back to Articles</Button>
-            
+
             <header className="mb-12">
                 <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-zinc-500">Article</p>
                 <h1 className="text-4xl font-extrabold tracking-tight text-zinc-900 sm:text-5xl">
