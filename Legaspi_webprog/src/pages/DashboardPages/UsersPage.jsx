@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Alert,
     Box,
@@ -23,7 +24,7 @@ import { useTheme } from '@mui/material/styles';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { DataGrid } from '@mui/x-data-grid';
-import usersSeed from '../../data/user.json?raw';
+import { fetchUsers, createUser, updateUser } from '../../services/UserService';
 
 const glassCardClasses = "animate-fade-in-up bg-white/50 backdrop-blur-xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-[2rem] p-6 sm:p-8 transition-all duration-300 hover:bg-white/60 hover:shadow-xl";
 
@@ -58,43 +59,11 @@ const blankForm = {
 const labelize = (value) =>
     value ? `${value.charAt(0).toUpperCase()}${value.slice(1)}` : '';
 
-const loadUsers = () => {
-    try {
-        return {
-            users: JSON.parse(usersSeed).map((user, index) => ({
-                id: Number(user.id) || index + 1,
-                firstName: String(user.firstName ?? '').trim(),
-                lastName: String(user.lastName ?? '').trim(),
-                age: String(user.age ?? '').trim(),
-                gender: genders.includes(String(user.gender ?? '').trim().toLowerCase())
-                    ? String(user.gender ?? '').trim().toLowerCase()
-                    : '',
-                contactNumber: String(user.contactNumber ?? '').trim(),
-                email: String(user.email ?? '').trim().toLowerCase(),
-                role: roles.includes(String(user.role ?? '').trim().toLowerCase())
-                    ? String(user.role ?? '').trim().toLowerCase()
-                    : 'editor',
-                username: String(user.username ?? '').trim().toLowerCase(),
-                password: String(user.password ?? '').trim(),
-                address: String(user.address ?? '').trim(),
-                isActive: typeof user.isActive === 'boolean' ? user.isActive : true,
-            })),
-            error: '',
-        };
-    } catch {
-        return {
-            users: [],
-            error: 'Unable to read users from src/data/user.json.',
-        };
-    }
-};
-
-const seed = loadUsers();
-
 const UsersPage = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const [users, setUsers] = useState(seed.users);
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [modal, setModal] = useState({ open: false, id: null });
     const [form, setForm] = useState({ ...blankForm });
     const [errors, setErrors] = useState({});
@@ -103,12 +72,34 @@ const UsersPage = () => {
     // Search & Filter State
     const [searchQuery, setSearchQuery] = useState('');
     const [filters, setFilters] = useState({ role: 'all', gender: 'all', status: 'all' });
+    const navigate = useNavigate();
+
+    const loadUsersFromApi = async () => {
+        try {
+            setLoading(true);
+            const { data } = await fetchUsers();
+            setUsers(data.users || []);
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const userType = localStorage.getItem('type');
+        if (userType === 'editor') {
+            navigate('/dashboard'); // Kick editors out of the UsersPage
+        } else {
+            loadUsersFromApi();
+        }
+    }, [navigate]);
 
     const filteredUsers = users.filter((user) => {
         const matchesSearch = !searchQuery || [user.firstName, user.lastName, user.email, user.username]
             .some(val => String(val || '').toLowerCase().includes(searchQuery.toLowerCase()));
         
-        const matchesRole = filters.role === 'all' || user.role === filters.role;
+        const matchesRole = filters.role === 'all' || user.type === filters.role || user.role === filters.role;
         const matchesGender = filters.gender === 'all' || user.gender === filters.gender;
         const matchesStatus = filters.status === 'all' || 
             (filters.status === 'active' ? user.isActive : !user.isActive);
@@ -122,8 +113,9 @@ const UsersPage = () => {
     };
 
     const openModal = (user) => {
-        setModal({ open: true, id: user?.id ?? null });
-        setForm(user ? { ...blankForm, ...user } : { ...blankForm });
+        const userId = user?._id || user?.id || null;
+        setModal({ open: true, id: userId });
+        setForm(user ? { ...blankForm, ...user, password: '' } : { ...blankForm });
         setErrors({});
     };
 
@@ -202,7 +194,7 @@ const UsersPage = () => {
         return nextErrors;
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
         const nextErrors = validate();
 
@@ -218,40 +210,39 @@ const UsersPage = () => {
             gender: form.gender.trim().toLowerCase(),
             contactNumber: form.contactNumber.trim(),
             email: form.email.trim().toLowerCase(),
-            role: form.role.trim().toLowerCase(),
+            type: form.role.trim().toLowerCase(), // The backend model uses 'type' instead of 'role'
             username: form.username.trim().toLowerCase(),
             password: form.password,
             address: form.address.trim(),
             isActive: form.isActive,
         };
 
-        setUsers((prev) =>
-            modal.id
-                ? prev.map((user) =>
-                    user.id === modal.id ? { ...user, ...nextUser } : user
-                )
-                : [
-                    ...prev,
-                    {
-                        id:
-                            prev.reduce(
-                                (max, user) => Math.max(max, Number(user.id) || 0),
-                                0
-                            ) + 1,
-                        ...nextUser,
-                    },
-                ]
-        );
-
-        closeModal();
+        try {
+            if (modal.id) {
+                // Update user
+                if (!nextUser.password) {
+                    delete nextUser.password; // Exclude password if it's empty
+                }
+                await updateUser(modal.id, nextUser);
+            } else {
+                // Add new user
+                await createUser(nextUser);
+            }
+            loadUsersFromApi(); // Reload users
+            closeModal();
+        } catch (error) {
+            console.error('Error saving user:', error);
+        }
     };
 
-    const toggleStatus = (id) => {
-        setUsers((prev) =>
-            prev.map((user) =>
-                user.id === id ? { ...user, isActive: !user.isActive } : user
-            )
-        );
+    const toggleStatus = async (user) => {
+        try {
+            const userId = user._id || user.id;
+            await updateUser(userId, { isActive: !user.isActive });
+            loadUsersFromApi(); // Reload users after toggling
+        } catch (error) {
+            console.error('Error toggling user status:', error);
+        }
     };
 
     const fieldProps = (name, label, extra = {}) => ({
@@ -287,7 +278,7 @@ const UsersPage = () => {
             field: 'role',
             headerName: 'Role',
             minWidth: 120,
-            valueGetter: (_, row) => labelize(row.role),
+            valueGetter: (_, row) => labelize(row.type || row.role),
         },
         {
             field: 'status',
@@ -323,7 +314,7 @@ const UsersPage = () => {
                         size="small"
                         variant="contained"
                         color={row.isActive ? 'warning' : 'success'}
-                        onClick={() => toggleStatus(row.id)}
+                        onClick={() => toggleStatus(row)}
                     >
                         {row.isActive ? 'Disable' : 'Activate'}
                     </Button>
@@ -346,13 +337,6 @@ const UsersPage = () => {
                     Add User
                 </button>
             </div>
-
-            {seed.error ? (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                    {seed.error}
-                </Alert>
-            ) : null}
-
             <div className={`${glassCardClasses} !p-4 sm:!p-6`} style={{ animationDelay: '0.2s' }}>
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
                     <TextField
@@ -409,8 +393,10 @@ const UsersPage = () => {
                         <DataGrid
                             rows={filteredUsers}
                             columns={columns}
+                            getRowId={(row) => row._id || row.id}
+                            loading={loading}
                             disableRowSelectionOnClick
-                            pageSizeOptions={[5, 10]}
+                            pageSizeOptions={[5, 10, 20, 50]}
                             initialState={{
                                 pagination: { paginationModel: { pageSize: 5, page: 0 } },
                             }}

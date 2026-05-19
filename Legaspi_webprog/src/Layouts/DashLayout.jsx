@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { styled, useTheme, alpha } from '@mui/material/styles';
 import Box from '@mui/material/Box';
@@ -39,6 +39,12 @@ const dashboardNavItems = [
         title: "Reports",
         to: "/dashboard/reports",
         icon: AssessmentIcon,
+    },
+    {
+        label: "Articles",
+        title: "Articles",
+        to: "/dashboard/articles",
+        icon: ArticleIcon,
     },
     {
         label: "Users",
@@ -162,6 +168,13 @@ const DashLayout = () => {
     const pageTitle = getPageTitle(location.pathname);
     const navigate = useNavigate();
 
+    useEffect(() => {
+        // Route Guard: Kick out unauthenticated users
+        if (!localStorage.getItem('token')) {
+            navigate('/auth/signin');
+        }
+    }, [navigate]);
+
     const handleDrawerOpen = () => {
         setOpen(true);
     };
@@ -171,6 +184,10 @@ const DashLayout = () => {
     };
 
     const handleLogout = () => {
+        // Clear all authentication data before redirecting
+        localStorage.removeItem('token');
+        localStorage.removeItem('type');
+        localStorage.removeItem('firstName');
         navigate("/");
     };
 
@@ -229,34 +246,41 @@ const DashLayout = () => {
                 <Divider />
                 {/* Drawer List */}
                 <List>
-                    {dashboardNavItems.map(({ label, to, icon: Icon }) => (
-                        <ListItem key={to} disablePadding sx={{ display: 'block' }}>
-                            <ListItemButton
-                                component={Link}
-                                to={to}
-                                selected={location.pathname === to}
-                                sx={{
-                                    minHeight: 48,
-                                    px: 2.5,
-                                    justifyContent: open ? 'initial' : 'center',
-                                }}
-                            >
-                                <ListItemIcon
+                    {dashboardNavItems
+                        .filter(item => {
+                            // Hide Users page from editors
+                            const userType = localStorage.getItem('type');
+                            if (item.label === 'Users' && userType === 'editor') return false;
+                            return true;
+                        })
+                        .map(({ label, to, icon: Icon }) => (
+                            <ListItem key={to} disablePadding sx={{ display: 'block' }}>
+                                <ListItemButton
+                                    component={Link}
+                                    to={to}
+                                    selected={location.pathname === to}
                                     sx={{
-                                        minWidth: 0,
-                                        mr: open ? 3 : 'auto',
-                                        justifyContent: 'center',
+                                        minHeight: 48,
+                                        px: 2.5,
+                                        justifyContent: open ? 'initial' : 'center',
                                     }}
                                 >
-                                    <Icon />
-                                </ListItemIcon>
-                                <ListItemText
-                                    primary={label}
-                                    sx={{ opacity: open ? 1 : 0 }}
-                                />
-                            </ListItemButton>
-                        </ListItem>
-                    ))}
+                                    <ListItemIcon
+                                        sx={{
+                                            minWidth: 0,
+                                            mr: open ? 3 : 'auto',
+                                            justifyContent: 'center',
+                                        }}
+                                    >
+                                        <Icon />
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        primary={label}
+                                        sx={{ opacity: open ? 1 : 0 }}
+                                    />
+                                </ListItemButton>
+                            </ListItem>
+                        ))}
                 </List>
             </Drawer>
             <Box component="main" sx={{ flexGrow: 1, p: 3 }}>

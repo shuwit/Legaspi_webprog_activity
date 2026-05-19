@@ -1,5 +1,7 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../components/Button';
+import { createUser } from '../../services/UserService';
 
 const inputClasses =
     'mt-2 w-full rounded-2xl border border-white/60 bg-white/40 px-5 py-4 text-sm text-zinc-900 outline-none backdrop-blur-md transition-all duration-300 placeholder:text-zinc-500 focus:-translate-y-0.5 focus:bg-white/80 focus:ring-4 focus:ring-zinc-500/20 shadow-[0_4px_12px_rgba(0,0,0,0.03)] hover:bg-white/60';
@@ -9,6 +11,44 @@ const primaryButtonClassName = 'w-full rounded-2xl py-4 text-[11px] tracking-[0.
 const secondaryButtonClassName = 'w-full rounded-2xl py-4 text-[11px] tracking-[0.2em] font-bold border border-white/80 bg-white/50 backdrop-blur-md shadow-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white/90 hover:shadow-[0_8px_20px_rgba(0,0,0,0.08)] active:scale-95 text-zinc-900';
 
 const SignUpPage = () => {
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [form, setForm] = useState({
+        firstName: '',
+        lastName: '',
+        username: '',
+        email: '',
+        age: '',
+        gender: 'male',
+        contactNumber: '',
+        address: '',
+        password: '',
+    });
+
+    const handleChange = (e) => {
+        setForm({ ...form, [e.target.name]: e.target.value });
+        setError('');
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+
+        try {
+            // Include default type and isActive since it's a new signup
+            // Default to 'editor' based on the User.js model schema default, but you can change to viewer if preferred
+            await createUser({ ...form, type: 'editor', isActive: true });
+            
+            // Redirect to login page on success
+            navigate('/auth/signin', { state: { message: 'Registration successful! Please log in.' } });
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to create account. Please try again.');
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="animate-fade-in-up relative rounded-[2rem] border border-white/60 bg-white/30 p-8 shadow-[0_8px_32px_rgba(0,0,0,0.04)] backdrop-blur-2xl sm:p-12">
             
@@ -19,80 +59,143 @@ const SignUpPage = () => {
                 </p>
             </div>
 
-            <form className="mt-8 space-y-6">
+            {error && (
+                <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 text-sm">
+                    {error}
+                </div>
+            )}
+
+            <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
                 <div className="animate-fade-in-up grid gap-5 sm:grid-cols-2" style={{ animationDelay: '0.2s' }}>
                     <div>
-                        <label htmlFor="first-name" className="text-sm font-semibold text-zinc-700 ml-1">
-                            First Name
-                        </label>
+                        <label className="text-sm font-semibold text-zinc-700 ml-1">First Name</label>
                         <input
-                            id="first-name"
+                            required
+                            name="firstName"
+                            value={form.firstName}
+                            onChange={handleChange}
                             type="text"
                             placeholder="John"
-                            autoComplete="given-name"
                             className={inputClasses}
                         />
                     </div>
                     <div>
-                        <label htmlFor="last-name" className="text-sm font-semibold text-zinc-700 ml-1">
-                            Last Name
-                        </label>
+                        <label className="text-sm font-semibold text-zinc-700 ml-1">Last Name</label>
                         <input
-                            id="last-name"
+                            required
+                            name="lastName"
+                            value={form.lastName}
+                            onChange={handleChange}
                             type="text"
                             placeholder="Doe"
-                            autoComplete="family-name"
                             className={inputClasses}
                         />
                     </div>
                 </div>
 
-                <div className="animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-                    <label htmlFor="signup-email" className="text-sm font-semibold text-zinc-700 ml-1">
-                        Email Address
-                    </label>
+                <div className="animate-fade-in-up grid gap-5 sm:grid-cols-2" style={{ animationDelay: '0.3s' }}>
+                    <div>
+                        <label className="text-sm font-semibold text-zinc-700 ml-1">Username</label>
+                        <input
+                            required
+                            name="username"
+                            value={form.username}
+                            onChange={handleChange}
+                            type="text"
+                            placeholder="johndoe123"
+                            className={inputClasses}
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm font-semibold text-zinc-700 ml-1">Email Address</label>
+                        <input
+                            required
+                            name="email"
+                            value={form.email}
+                            onChange={handleChange}
+                            type="email"
+                            placeholder="you@example.com"
+                            className={inputClasses}
+                        />
+                    </div>
+                </div>
+
+                <div className="animate-fade-in-up grid gap-5 sm:grid-cols-2" style={{ animationDelay: '0.4s' }}>
+                    <div>
+                        <label className="text-sm font-semibold text-zinc-700 ml-1">Age</label>
+                        <input
+                            required
+                            name="age"
+                            value={form.age}
+                            onChange={handleChange}
+                            type="number"
+                            placeholder="25"
+                            className={inputClasses}
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm font-semibold text-zinc-700 ml-1">Gender</label>
+                        <select
+                            required
+                            name="gender"
+                            value={form.gender}
+                            onChange={handleChange}
+                            className={inputClasses}
+                        >
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div className="animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+                    <label className="text-sm font-semibold text-zinc-700 ml-1">Contact Number</label>
                     <input
-                        id="signup-email"
-                        type="email"
-                        placeholder="you@example.com"
-                        autoComplete="email"
+                        required
+                        name="contactNumber"
+                        value={form.contactNumber}
+                        onChange={handleChange}
+                        type="tel"
+                        placeholder="+63 912 345 6789"
                         className={inputClasses}
                     />
                 </div>
 
-                <div className="animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-                    <label htmlFor="signup-password" className="text-sm font-semibold text-zinc-700 ml-1">
-                        Password
-                    </label>
+                <div className="animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+                    <label className="text-sm font-semibold text-zinc-700 ml-1">Address</label>
                     <input
-                        id="signup-password"
+                        required
+                        name="address"
+                        value={form.address}
+                        onChange={handleChange}
+                        type="text"
+                        placeholder="123 Street Name, City, Country"
+                        className={inputClasses}
+                    />
+                </div>
+
+                <div className="animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+                    <label className="text-sm font-semibold text-zinc-700 ml-1">Password</label>
+                    <input
+                        required
+                        name="password"
+                        value={form.password}
+                        onChange={handleChange}
                         type="password"
                         placeholder="••••••••"
-                        autoComplete="new-password"
                         className={inputClasses}
                     />
-                    <p className="mt-2 ml-1 text-xs leading-5 text-zinc-500">
-                        Use a secure password with letters, numbers, and symbols.
-                    </p>
                 </div>
 
-                <div className="animate-fade-in-up pt-2" style={{ animationDelay: '0.5s' }}>
-                    <Button type="submit" variant="primary" className={primaryButtonClassName}>
-                        Create Account
-                    </Button>
-                </div>
-
-                <div className="animate-fade-in-up grid gap-3 pt-2 sm:grid-cols-2" style={{ animationDelay: '0.6s' }}>
-                    <Button type="button" variant="secondary" className={secondaryButtonClassName}>
-                        Sign Up with Google
-                    </Button>
-                    <Button type="button" variant="secondary" className={secondaryButtonClassName}>
-                        Sign Up with Apple
+                <div className="animate-fade-in-up pt-4" style={{ animationDelay: '0.7s' }}>
+                    <Button type="submit" variant="primary" className={primaryButtonClassName} disabled={loading}>
+                        {loading ? 'CREATING ACCOUNT...' : 'CREATE ACCOUNT'}
                     </Button>
                 </div>
             </form>
 
-            <div className="animate-fade-in-up mt-8 border-t border-zinc-200/50 pt-6 text-sm text-zinc-600 text-center" style={{ animationDelay: '0.7s' }}>
+            <div className="animate-fade-in-up mt-8 border-t border-zinc-200/50 pt-6 text-sm text-zinc-600 text-center" style={{ animationDelay: '0.8s' }}>
                 Already have an account?{' '}
                 <Link to="/auth/signin" className="font-bold text-zinc-900 transition-all hover:text-zinc-700 hover:underline">
                     Log In
