@@ -6,7 +6,7 @@ const ArticleList = ({ articles }) => {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {articles.map((article, index) => (
                 <article 
-                    key={article.name} 
+                    key={article.slug || article.name} 
                     className="group flex flex-col rounded-[2rem] border border-white/60 bg-white/40 p-5 shadow-sm backdrop-blur-md transition-all duration-300 hover:-translate-y-2 hover:bg-white/60"
                 >
                     <div className="flex aspect-4/3 items-center justify-center rounded-2xl bg-zinc-200 overflow-hidden">
@@ -20,9 +20,9 @@ const ArticleList = ({ articles }) => {
                             {article.title}
                         </h3>
                         <p className="mt-3 flex-grow text-sm leading-relaxed text-zinc-500 line-clamp-2">
-                            {article.content[0].substring(0, 100)}...
+                            {Array.isArray(article.content) ? article.content[0].substring(0, 100) : (article.content ? article.content.substring(0, 100) : '')}...
                         </p>
-                        <Link to={`/articles/${article.name}`} className="mt-6">
+                        <Link to={`/articles/${article.slug || article.name}`} className="mt-6">
                             <Button className="w-full">Read More</Button>
                         </Link>
                     </div>

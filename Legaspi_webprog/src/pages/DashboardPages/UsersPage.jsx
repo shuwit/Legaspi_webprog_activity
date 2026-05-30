@@ -149,7 +149,6 @@ const UsersPage = () => {
             ['email', 'Email'],
             ['role', 'Role'],
             ['username', 'Username'],
-            ['password', 'Password'],
             ['address', 'Address'],
         ].forEach(([key, label]) => {
             if (!String(form[key]).trim()) {
@@ -157,13 +156,18 @@ const UsersPage = () => {
             }
         });
 
+        // Password is required only when creating a new user
+        if (!modal.id && !String(form.password).trim()) {
+            nextErrors.password = 'Password is required.';
+        }
+
         if (!nextErrors.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             nextErrors.email = 'Enter a valid email address.';
         }
 
         if (
             !nextErrors.email &&
-            users.some((user) => user.id !== modal.id && user.email === email)
+            users.some((user) => (user._id || user.id) !== modal.id && user.email === email)
         ) {
             nextErrors.email = 'Email address already exists.';
         }
@@ -174,12 +178,13 @@ const UsersPage = () => {
 
         if (
             !nextErrors.username &&
-            users.some((user) => user.id !== modal.id && user.username === username)
+            users.some((user) => (user._id || user.id) !== modal.id && user.username === username)
         ) {
             nextErrors.username = 'Username already exists.';
         }
 
-        if (!nextErrors.password && form.password.length < 8) {
+        // Only validate password length if the user has typed something
+        if (!nextErrors.password && form.password && form.password.length < 8) {
             nextErrors.password = 'Password must be at least 8 characters.';
         }
 

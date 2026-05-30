@@ -1,8 +1,27 @@
+import { useState, useEffect } from 'react';
 import Button from '../../components/Button.jsx';
 import ArticleList from '../../components/ArticleList.jsx';
-import articles from '../../assets/styles/article-content.js';
+import hardcodedArticles from '../../assets/styles/article-content.js';
+import { fetchArticles } from '../../services/ArticleService.js';
 
 const ArticleListPage = () => {
+    const [articles, setArticles] = useState([...hardcodedArticles]);
+
+    useEffect(() => {
+        const loadArticles = async () => {
+            try {
+                const { data } = await fetchArticles();
+                if (data && data.articles) {
+                    const activeArticles = data.articles.filter(a => a.isActive);
+                    setArticles([...hardcodedArticles, ...activeArticles]);
+                }
+            } catch (error) {
+                console.error("Failed to load articles:", error);
+            }
+        };
+        loadArticles();
+    }, []);
+
     return (
         <div className="flex w-full flex-col gap-6 bg-zinc-50 min-h-screen">
             <section className="px-4 py-16 sm:px-6 lg:px-8 text-center">
